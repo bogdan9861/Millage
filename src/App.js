@@ -1,24 +1,28 @@
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Main from "./pages/Main";
+import { ConfigProvider, theme } from "antd";
+import Trips from "./pages/Trips";
+import Statistics from "./pages/Statistic";
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
+import Login from "./pages/Login";
+
+const { darkAlgorithm } = theme;
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <ConfigProvider theme={{ algorithm: darkAlgorithm }}>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Main />} />
+          <Route path="/trips" element={<Trips />} />
+          <Route path="/statistic" element={<Statistics />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/auth" element={<Login />} />
+        </Routes>
+      </Router>
+    </ConfigProvider>
   );
 }
 
