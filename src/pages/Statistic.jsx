@@ -106,7 +106,6 @@ const Statistics = () => {
     if (selectedCar === "all") return data;
     return data.filter((item) => item.car === selectedCar);
   };
-
   const lineConfig = {
     data: getFilteredData(mileageData),
     xField: "month",
@@ -180,7 +179,6 @@ const Statistics = () => {
           }
         : false,
   };
-
   // Consumption line chart
   const consumptionConfig = {
     data: getFilteredData(consumptionData),
@@ -257,7 +255,6 @@ const Statistics = () => {
       },
     },
   };
-
   const getEfficiencyRating = (consumption) => {
     if (consumption <= 8) return { text: "Отлично", color: "green" };
     if (consumption <= 11) return { text: "Хорошо", color: "blue" };
@@ -281,7 +278,6 @@ const Statistics = () => {
       transition: { type: "spring", stiffness: 300, damping: 24 },
     },
   };
-
   return (
     <div className="min-h-screen bg-black">
       <Header />
