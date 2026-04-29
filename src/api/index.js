@@ -1,7 +1,8 @@
 import axios from "axios";
 import { enums } from "../enums";
 
-const API_BASE_URL = "http://localhost:8080/api";
+const API_BASE_URL =
+  process?.env?.REACT_APP_BASE_URL || "http://localhost:8080/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
