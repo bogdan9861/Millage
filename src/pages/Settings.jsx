@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import {
   Card,
   Button,
@@ -7,101 +7,81 @@ import {
   Select,
   Input,
   Form,
-  DatePicker,
   Upload,
   message,
   Divider,
   Tabs,
-  Radio,
   Checkbox,
   Tag,
-  Tooltip,
-  Badge,
-  Progress,
   Modal,
-  List,
   Avatar,
   Alert,
-  Space,
-  ColorPicker,
-  TimePicker,
 } from "antd";
 import {
   SettingOutlined,
   UserOutlined,
-  BellOutlined,
-  LockOutlined,
-  CarOutlined,
   GlobalOutlined,
   FileTextOutlined,
-  ApiOutlined,
   DeleteOutlined,
   DownloadOutlined,
   UploadOutlined,
-  EyeOutlined,
-  EyeInvisibleOutlined,
   SafetyOutlined,
-  ThunderboltOutlined,
-  MoonOutlined,
-  SunOutlined,
-  DollarOutlined,
-  LineChartOutlined,
-  NotificationOutlined,
-  MailOutlined,
-  MessageOutlined,
-  MobileOutlined,
   QrcodeOutlined,
   CloudUploadOutlined,
-  CloudDownloadOutlined,
   ReloadOutlined,
   CheckCircleOutlined,
-  CloseCircleOutlined,
-  ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import { motion, AnimatePresence } from "framer-motion";
 import dayjs from "dayjs";
 import Header from "../components/Header";
+import { currentUser, editUser } from "../api/entities/user";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("profile");
   const [loading, setLoading] = useState(false);
-  const [theme, setTheme] = useState("dark");
-  const [language, setLanguage] = useState("ru");
-  const [notifications, setNotifications] = useState({
-    email: true,
-    push: true,
-    sms: false,
-    reminders: true,
-    promotions: false,
-    updates: true,
-  });
-  const [privacy, setPrivacy] = useState({
-    publicProfile: true,
-    showStats: true,
-    showCars: false,
-    showTrips: true,
-  });
-  const [units, setUnits] = useState("metric");
-  const [currency, setCurrency] = useState("rub");
+  const [editLoading, setEditLoading] = useState(false);
   const [backupModal, setBackupModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const [twoFactorModal, setTwoFactorModal] = useState(false);
+  const [user, setUser] = useState(false);
 
-  // Handle settings update
-  const handleUpdateSettings = () => {
+  const [form] = Form.useForm();
+
+  useEffect(() => {
+    if (!user) return;
+
+    form.setFieldValue("name", user?.name);
+    form.setFieldValue("email", user?.email);
+  }, [user]);
+
+  useEffect(() => {
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      message.success("Настройки сохранены");
-    }, 1000);
-  };
 
-  // Handle export data
-  const handleExportData = () => {
-    message.success("Экспорт данных начат");
-    setTimeout(() => {
-      message.success("Данные экспортированы успешно");
-    }, 1500);
+    currentUser()
+      .then((res) => {
+        setUser(res);
+      })
+      .catch((e) => {
+        message.error(e?.message);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
+
+  const handleUpdateSettings = () => {
+    setEditLoading(true);
+
+    editUser(form.getFieldsValue())
+      .then((res) => {
+        message.success("Данные сохранены");
+      })
+      .catch((e) => {
+        message.error("Не удалось сохранить данные");
+      })
+      .finally(() => {
+        setEditLoading(false);
+      });
   };
 
   // Animation variants
@@ -124,7 +104,7 @@ const Settings = () => {
   return (
     <div className="min-h-screen bg-black">
       <Header />
-      
+
       {/* Main Content */}
       <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-[1400px] mx-auto">
@@ -159,18 +139,10 @@ const Settings = () => {
               </div>
               <div className="flex gap-3">
                 <Button
-                  icon={<ReloadOutlined />}
-                  onClick={handleUpdateSettings}
-                  loading={loading}
-                  className="!bg-white/5 !border-white/10 !text-gray-300 hover:!text-white !rounded-full !h-11"
-                >
-                  Сбросить
-                </Button>
-                <Button
                   type="primary"
                   icon={<CheckCircleOutlined />}
                   onClick={handleUpdateSettings}
-                  loading={loading}
+                  loading={editLoading}
                   className="!bg-gradient-to-r !from-purple-500 !to-blue-500 !border-none !rounded-full !h-11"
                 >
                   Сохранить
@@ -186,12 +158,6 @@ const Settings = () => {
                 className="[&_.ant-tabs-tab]:!text-gray-400 [&_.ant-tabs-tab-active_.ant-tabs-tab-btn]:!text-white [&_.ant-tabs-ink-bar]:!bg-purple-500"
                 items={[
                   { key: "profile", label: "Профиль", icon: <UserOutlined /> },
-
-                  {
-                    key: "vehicles",
-                    label: "Автомобили",
-                    icon: <CarOutlined />,
-                  },
                 ]}
               />
             </motion.div>
@@ -209,6 +175,7 @@ const Settings = () => {
                 >
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <Card
+                      loading={loading}
                       title="Личная информация"
                       className="!bg-white/5 !border-white/10 !rounded-2xl"
                       headStyle={{
@@ -216,17 +183,16 @@ const Settings = () => {
                         color: "#e5e7eb",
                       }}
                     >
-                      <Form layout="vertical">
+                      <Form layout="vertical" form={form}>
                         <Form.Item
                           label="Имя"
+                          name="name"
                           className="[&_.ant-form-item-label_label]:!text-gray-300"
                         >
-                          <Input
-                            defaultValue="Алексей Иванов"
-                            className="!bg-white/5 !border-white/10 !text-white"
-                          />
+                          <Input className="!bg-white/5 !border-white/10 !text-white" />
                         </Form.Item>
                         <Form.Item
+                          name="email"
                           label="Email"
                           className="[&_.ant-form-item-label_label]:!text-gray-300"
                         >
@@ -235,38 +201,11 @@ const Settings = () => {
                             className="!bg-white/5 !border-white/10 !text-white"
                           />
                         </Form.Item>
-                        <Form.Item
-                          label="Телефон"
-                          className="[&_.ant-form-item-label_label]:!text-gray-300"
-                        >
-                          <Input
-                            defaultValue="+7 (999) 123-45-67"
-                            className="!bg-white/5 !border-white/10 !text-white"
-                          />
-                        </Form.Item>
-                        <Form.Item
-                          label="Дата рождения"
-                          className="[&_.ant-form-item-label_label]:!text-gray-300"
-                        >
-                          <DatePicker
-                            className="!bg-white/5 !border-white/10 !text-white w-full"
-                            format="DD.MM.YYYY"
-                          />
-                        </Form.Item>
-                        <Form.Item
-                          label="О себе"
-                          className="[&_.ant-form-item-label_label]:!text-gray-300"
-                        >
-                          <Input.TextArea
-                            rows={3}
-                            defaultValue="Автомобильный энтузиаст"
-                            className="!bg-white/5 !border-white/10 !text-white"
-                          />
-                        </Form.Item>
                       </Form>
                     </Card>
 
                     <Card
+                      loading={loading}
                       title="Аватар"
                       className="!bg-white/5 !border-white/10 !rounded-2xl"
                       headStyle={{
@@ -280,41 +219,22 @@ const Settings = () => {
                           icon={<UserOutlined />}
                           className="!bg-gradient-to-br !from-purple-500 !to-blue-500 mb-4"
                         />
-                        <div className="flex gap-3 justify-center mt-4">
-                          <Upload showUploadList={false}>
-                            <Button
-                              icon={<UploadOutlined />}
-                              className="!bg-white/5 !border-white/10 !text-gray-300"
-                            >
-                              Загрузить
-                            </Button>
-                          </Upload>
-                          <Button
-                            icon={<DeleteOutlined />}
-                            danger
-                            className="!bg-red-500/10 !border-red-500/20"
-                          >
-                            Удалить
-                          </Button>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-4">
-                          Рекомендуемый размер: 512x512px. Поддерживаются JPG,
-                          PNG
-                        </p>
                       </div>
                       <Divider className="!border-white/10" />
                       <div className="space-y-3">
                         <div className="flex justify-between">
                           <span className="text-gray-400">ID пользователя</span>
                           <span className="text-white font-mono">
-                            #USR-12345
+                            {user?.id}
                           </span>
                         </div>
-                        <div className="flex justify-between">
+                        <div className="fВlex justify-between">
                           <span className="text-gray-400">
                             Дата регистрации
                           </span>
-                          <span className="text-white">15 января 2024</span>
+                          <span className="text-white">
+                            {new Date(user?.joinDate).toDateString()}
+                          </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-400">Статус</span>
@@ -325,291 +245,6 @@ const Settings = () => {
                       </div>
                     </Card>
                   </div>
-
-                  <Card
-                    title="Социальные сети"
-                    className="!bg-white/5 !border-white/10 !rounded-2xl"
-                    headStyle={{
-                      borderBottom: "1px solid rgba(255,255,255,0.1)",
-                      color: "#e5e7eb",
-                    }}
-                  >
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Input
-                        prefix={<GlobalOutlined />}
-                        placeholder="Telegram"
-                        className="!bg-white/5 !border-white/10 !text-white"
-                      />
-                      <Input
-                        prefix={<GlobalOutlined />}
-                        placeholder="Instagram"
-                        className="!bg-white/5 !border-white/10 !text-white"
-                      />
-                      <Input
-                        prefix={<GlobalOutlined />}
-                        placeholder="Facebook"
-                        className="!bg-white/5 !border-white/10 !text-white"
-                      />
-                      <Input
-                        prefix={<GlobalOutlined />}
-                        placeholder="VK"
-                        className="!bg-white/5 !border-white/10 !text-white"
-                      />
-                    </div>
-                  </Card>
-                </motion.div>
-              )}
-
-              {/* Vehicles Settings */}
-              {activeTab === "vehicles" && (
-                <motion.div
-                  key="vehicles"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="space-y-6"
-                >
-                  <Card
-                    title="Основной автомобиль"
-                    className="!bg-white/5 !border-white/10 !rounded-2xl"
-                    headStyle={{
-                      borderBottom: "1px solid rgba(255,255,255,0.1)",
-                      color: "#e5e7eb",
-                    }}
-                  >
-                    <Select
-                      defaultValue="tesla"
-                      className="!bg-white/5 !w-full"
-                    >
-                      <Select.Option value="tesla">
-                        Tesla Model 3 (A123BC)
-                      </Select.Option>
-                      <Select.Option value="bmw">BMW X5 (B456DE)</Select.Option>
-                      <Select.Option value="mercedes">
-                        Mercedes E-Class (C789FG)
-                      </Select.Option>
-                    </Select>
-                  </Card>
-
-                  <Card
-                    title="Настройки учета"
-                    className="!bg-white/5 !border-white/10 !rounded-2xl"
-                    headStyle={{
-                      borderBottom: "1px solid rgba(255,255,255,0.1)",
-                      color: "#e5e7eb",
-                    }}
-                  >
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="text-white">
-                            Автоматический расчет расхода
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            Рассчитывать расход на основе данных заправок
-                          </div>
-                        </div>
-                        <Switch defaultChecked />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="text-white">Напоминания о ТО</div>
-                          <div className="text-xs text-gray-500">
-                            Автоматические напоминания о техобслуживании
-                          </div>
-                        </div>
-                        <Switch defaultChecked />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="text-white">Интервал ТО</div>
-                          <div className="text-xs text-gray-500">
-                            Периодичность напоминаний о техобслуживании
-                          </div>
-                        </div>
-                        <Select
-                          defaultValue="10000"
-                          className="!bg-white/5 !w-32"
-                        >
-                          <Select.Option value="5000">5,000 км</Select.Option>
-                          <Select.Option value="10000">10,000 км</Select.Option>
-                          <Select.Option value="15000">15,000 км</Select.Option>
-                          <Select.Option value="20000">20,000 км</Select.Option>
-                        </Select>
-                      </div>
-                    </div>
-                  </Card>
-
-                  <Card
-                    title="Типы топлива"
-                    className="!bg-white/5 !border-white/10 !rounded-2xl"
-                    headStyle={{
-                      borderBottom: "1px solid rgba(255,255,255,0.1)",
-                      color: "#e5e7eb",
-                    }}
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
-                        <Checkbox
-                          defaultChecked
-                          className="[&_.ant-checkbox-inner]:!border-white/30"
-                        />
-                        <span className="text-white flex-1">АИ-92</span>
-                        <Tag color="blue" className="rounded-full">
-                          Tesla Model 3
-                        </Tag>
-                      </div>
-                      <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
-                        <Checkbox
-                          defaultChecked
-                          className="[&_.ant-checkbox-inner]:!border-white/30"
-                        />
-                        <span className="text-white flex-1">АИ-95</span>
-                        <Tag color="green" className="rounded-full">
-                          BMW X5
-                        </Tag>
-                      </div>
-                      <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
-                        <Checkbox
-                          defaultChecked
-                          className="[&_.ant-checkbox-inner]:!border-white/30"
-                        />
-                        <span className="text-white flex-1">АИ-98</span>
-                        <Tag color="purple" className="rounded-full">
-                          Mercedes E-Class
-                        </Tag>
-                      </div>
-                      <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
-                        <Checkbox className="[&_.ant-checkbox-inner]:!border-white/30" />
-                        <span className="text-white flex-1">Дизель</span>
-                      </div>
-                    </div>
-                  </Card>
-                </motion.div>
-              )}
-
-              {/* Data Settings */}
-              {activeTab === "data" && (
-                <motion.div
-                  key="data"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="space-y-6"
-                >
-                  <Card
-                    title="Управление данными"
-                    className="!bg-white/5 !border-white/10 !rounded-2xl"
-                    headStyle={{
-                      borderBottom: "1px solid rgba(255,255,255,0.1)",
-                      color: "#e5e7eb",
-                    }}
-                  >
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
-                        <div>
-                          <div className="text-white">Экспорт данных</div>
-                          <div className="text-xs text-gray-500">
-                            Выгрузить все данные в JSON/CSV формате
-                          </div>
-                        </div>
-                        <Button
-                          icon={<DownloadOutlined />}
-                          onClick={handleExportData}
-                          className="!bg-white/5 !border-white/10 !text-gray-300"
-                        >
-                          Экспорт
-                        </Button>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
-                        <div>
-                          <div className="text-white">Импорт данных</div>
-                          <div className="text-xs text-gray-500">
-                            Загрузить данные из файла
-                          </div>
-                        </div>
-                        <Upload showUploadList={false}>
-                          <Button
-                            icon={<UploadOutlined />}
-                            className="!bg-white/5 !border-white/10 !text-gray-300"
-                          >
-                            Импорт
-                          </Button>
-                        </Upload>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
-                        <div>
-                          <div className="text-white">
-                            Резервное копирование
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            Создать резервную копию данных
-                          </div>
-                        </div>
-                        <Button
-                          icon={<CloudUploadOutlined />}
-                          onClick={() => setBackupModal(true)}
-                          className="!bg-white/5 !border-white/10 !text-gray-300"
-                        >
-                          Создать
-                        </Button>
-                      </div>
-                    </div>
-                  </Card>
-
-                  <Card
-                    title="История"
-                    className="!bg-white/5 !border-white/10 !rounded-2xl"
-                    headStyle={{
-                      borderBottom: "1px solid rgba(255,255,255,0.1)",
-                      color: "#e5e7eb",
-                    }}
-                  >
-                    <div className="space-y-4">
-                      <div>
-                        <div className="text-white mb-2">Хранение данных</div>
-                        <Slider
-                          defaultValue={12}
-                          min={1}
-                          max={60}
-                          marks={{ 12: "12 мес", 24: "24 мес", 36: "36 мес" }}
-                        />
-                        <div className="text-xs text-gray-500 mt-2">
-                          Данные хранятся 12 месяцев
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="text-white">
-                            Автоматическая очистка
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            Удалять старые данные автоматически
-                          </div>
-                        </div>
-                        <Switch defaultChecked />
-                      </div>
-                    </div>
-                  </Card>
-
-                  <Alert
-                    message="Удаление аккаунта"
-                    description="Удаление аккаунта приведет к безвозвратной потере всех данных. Это действие нельзя отменить."
-                    type="error"
-                    icon={<DeleteOutlined />}
-                    className="!bg-red-500/10 !border-red-500/20 !text-red-300"
-                    showIcon
-                    action={
-                      <Button
-                        danger
-                        size="small"
-                        onClick={() => setDeleteModal(true)}
-                        className="!bg-red-500/20 !border-red-500/30"
-                      >
-                        Удалить аккаунт
-                      </Button>
-                    }
-                  />
                 </motion.div>
               )}
             </AnimatePresence>

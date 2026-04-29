@@ -1,0 +1,554 @@
+/* NotificationsPage - основной блок */
+.notifications-page__container {
+  display: flex;
+  flex-direction: column;
+  margin-top: 50px;
+  width: 70%;
+  padding: 0 20px;
+  background-color: #000;
+  width: 100%;
+  height: 100vh;
+  padding-top: 50px;
+}
+
+/* Шапка страницы */
+.notifications-page__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.notifications-page__title {
+  font-size: 2rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: white;
+}
+
+.notifications-page__title-icon {
+  color: #ffd966;
+  font-size: 1.8rem;
+}
+
+.notifications-page__actions {
+  display: flex;
+  gap: 12px;
+}
+
+.notifications-page__action-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 40px;
+  padding: 8px 18px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.notifications-page__action-btn:hover {
+  background: rgba(255, 215, 0, 0.15);
+  color: #ffd966;
+}
+
+.notifications-page__action-btn--danger:hover {
+  background: rgba(231, 76, 60, 0.15);
+  color: #e74c3c;
+}
+
+/* Статистика */
+.notifications-page__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.notifications-page__stat-card {
+  background: rgba(30, 40, 50, 0.5);
+  backdrop-filter: blur(12px);
+  border-radius: 24px;
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.notifications-page__stat-card--unread {
+  background: rgba(52, 152, 219, 0.1);
+  border-color: rgba(52, 152, 219, 0.3);
+}
+
+.notifications-page__stat-card--read {
+  background: rgba(46, 204, 113, 0.05);
+  border-color: rgba(46, 204, 113, 0.2);
+}
+
+.notifications-page__stat-icon {
+  font-size: 1.8rem;
+  color: #ffd966;
+}
+
+.notifications-page__stat-card--unread .notifications-page__stat-icon {
+  color: #3498db;
+}
+
+.notifications-page__stat-card--read .notifications-page__stat-icon {
+  color: #2ecc71;
+}
+
+.notifications-page__stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.notifications-page__stat-label {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.notifications-page__stat-value {
+  font-size: 2rem;
+  font-weight: 600;
+  color: white;
+  line-height: 1.2;
+}
+
+/* Фильтры */
+.notifications-page__filters {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.notifications-page__filter-group {
+  display: flex;
+  gap: 8px;
+  background: rgba(30, 40, 50, 0.5);
+  backdrop-filter: blur(12px);
+  border-radius: 40px;
+  padding: 5px;
+}
+
+.notifications-page__filter-btn {
+  padding: 8px 20px;
+  border-radius: 40px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notifications-page__filter-btn--active {
+  background: #6e61ff;
+  color: #ffffff;
+}
+
+.notifications-page__badge {
+  background: rgba(231, 76, 60, 0.8);
+  color: white;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 20px;
+  min-width: 20px;
+}
+
+/* Массовые действия */
+.notifications-page__batch-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.notifications-page__batch-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 40px;
+  padding: 8px 18px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.notifications-page__batch-btn:hover {
+  background: rgba(255, 215, 0, 0.15);
+  color: #ffd966;
+}
+
+.notifications-page__batch-btn--danger:hover {
+  background: rgba(231, 76, 60, 0.15);
+  color: #e74c3c;
+}
+
+.notifications-page__batch-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.notifications-page__batch-tools {
+  display: flex;
+  gap: 10px;
+}
+
+/* Список уведомлений */
+.notifications-page__list {
+  background: rgba(30, 40, 50, 0.3);
+  backdrop-filter: blur(12px);
+  border-radius: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  min-height: 400px;
+  overflow: hidden;
+}
+
+/* Элемент уведомления */
+.notifications-page__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.notifications-page__item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.notifications-page__item--unread {
+  background: rgba(52, 152, 219, 0.05);
+}
+
+.notifications-page__item--selected {
+  background: rgba(255, 215, 0, 0.08);
+}
+
+/* Чекбокс */
+.notifications-page__item-checkbox {
+  flex-shrink: 0;
+}
+
+.notifications-page__checkbox {
+  position: relative;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.notifications-page__checkbox input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.notifications-page__checkbox-custom {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  transition: all 0.3s;
+}
+
+.notifications-page__checkbox
+  input:checked
+  + .notifications-page__checkbox-custom {
+  background: #6E61FF;
+  border-color: #6E61FF;
+}
+
+.notifications-page__checkbox
+  input:checked
+  + .notifications-page__checkbox-custom::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid #ffffff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* Иконка уведомления */
+.notifications-page__item-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+/* Контент уведомления */
+.notifications-page__item-content {
+  flex: 1;
+}
+
+.notifications-page__item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.notifications-page__item-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notifications-page__unread-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background: #3498db;
+  display: inline-block;
+}
+
+.notifications-page__item-date {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.notifications-page__item-message {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+/* Информация об автомобиле */
+.notifications-page__item-car {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  color: #ffd966;
+}
+
+.notifications-page__item-car-number {
+  color: rgba(255, 255, 255, 0.5);
+  margin-left: 4px;
+}
+
+/* Действия с уведомлением */
+.notifications-page__item-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.notifications-page__item:hover .notifications-page__item-actions {
+  opacity: 1;
+}
+
+.notifications-page__item-action {
+  width: 32px;
+  height: 32px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.notifications-page__item-action:hover {
+  background: rgba(255, 215, 0, 0.15);
+  color: #ffd966;
+}
+
+.notifications-page__item-action--delete:hover {
+  background: rgba(231, 76, 60, 0.15);
+  color: #e74c3c;
+}
+
+/* Загрузка и пустое состояние */
+.notifications-page__loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px;
+}
+
+.notifications-page__empty {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.notifications-page__empty-icon {
+  font-size: 4rem;
+  color: rgba(255, 255, 255, 0.1);
+  margin-bottom: 20px;
+}
+
+.notifications-page__empty-title {
+  font-size: 1.5rem;
+  font-weight: 500;
+  margin-bottom: 10px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.notifications-page__empty-text {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Пагинация */
+.notifications-page__pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin-top: 25px;
+}
+
+.notifications-page__pagination-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notifications-page__pagination-btn:hover:not(:disabled) {
+  background: rgba(255, 215, 0, 0.15);
+  color: #ffd966;
+}
+
+.notifications-page__pagination-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.notifications-page__pagination-info {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+}
+
+/* Адаптивность */
+@media (max-width: 1024px) {
+  .notifications-page__container {
+    width: 85%;
+  }
+}
+
+@media (max-width: 768px) {
+  .notifications-page__container {
+    width: 100%;
+    padding: 0 16px;
+  }
+
+  .notifications-page__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .notifications-page__stats {
+    gap: 12px;
+  }
+
+  .notifications-page__stat-card {
+    padding: 12px 16px;
+  }
+
+  .notifications-page__stat-value {
+    font-size: 1.5rem;
+  }
+
+  .notifications-page__filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .notifications-page__filter-group {
+    justify-content: center;
+  }
+
+  .notifications-page__batch-actions {
+    justify-content: center;
+  }
+
+  .notifications-page__item {
+    flex-wrap: wrap;
+    padding: 16px;
+  }
+
+  .notifications-page__item-actions {
+    opacity: 1;
+    margin-left: 56px;
+  }
+
+  .notifications-page__item-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .notifications-page__stats {
+    grid-template-columns: 1fr;
+  }
+
+  .notifications-page__filter-group {
+    flex-wrap: wrap;
+  }
+
+  .notifications-page__batch-tools {
+    flex-wrap: wrap;
+  }
+
+  .notifications-page__item-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+}

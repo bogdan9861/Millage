@@ -31,6 +31,9 @@ import {
   CheckCircleOutlined,
 } from "@ant-design/icons";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
+import { loginUser, registerUser } from "../api/entities/user";
+import { enums } from "../enums";
+import { useNavigate } from "react-router";
 
 const Login = () => {
   const [loginForm] = Form.useForm();
@@ -42,25 +45,22 @@ const Login = () => {
   const [forgotModal, setForgotModal] = useState(false);
   const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
   const [speed, setSpeed] = useState(0);
+  const navigate = useNavigate();
 
-  // Animation controls for car
   const carControls = useAnimation();
   const roadControls = useAnimation();
 
-  // Track mouse movement for speed effect
   useEffect(() => {
     const handleMouseMove = (e) => {
       const x = (e.clientX / window.innerWidth) * 100;
       const y = (e.clientY / window.innerHeight) * 100;
       setCursorPosition({ x, y });
 
-      // Calculate speed based on mouse movement
       const speedX = Math.abs(e.movementX);
       const speedY = Math.abs(e.movementY);
       const newSpeed = Math.min(Math.max(speedX + speedY, 0), 30);
       setSpeed(newSpeed);
 
-      // Animate car based on mouse position
       carControls.start({
         x: (x - 50) * 0.5,
         y: (y - 50) * 0.2,
@@ -80,12 +80,20 @@ const Login = () => {
 
   const handleLogin = async (values) => {
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-      message.success("Добро пожаловать!");
-      // Redirect would go here
-    }, 1500);
+
+    console.log(values);
+
+    loginUser(values)
+      .then((res) => {
+        localStorage.setItem(enums.TOKEN, res.token);
+        navigate("/");
+      })
+      .catch((e) => {
+        console.log(e.message);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   const handleRegister = async (values) => {
@@ -94,12 +102,18 @@ const Login = () => {
       return;
     }
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      message.success("Регистрация успешна!");
-      setActiveTab("login");
-      registerForm.resetFields();
-    }, 1500);
+
+    registerUser(values)
+      .then((res) => {
+        localStorage(enums.TOKEN, res.data.token);
+        navigate("/");
+      })
+      .catch((e) => {
+        message.error(e?.response?.data?.message || "Не удалось войти");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   const handleForgotPassword = (values) => {
@@ -109,7 +123,6 @@ const Login = () => {
     setForgotModal(false);
   };
 
-  // Features list
   const features = [
     {
       icon: <DashboardOutlined />,
@@ -446,19 +459,6 @@ const Login = () => {
                             />
                           </Form.Item>
 
-                          <div className="flex justify-between items-center mb-6">
-                            <Checkbox className="text-gray-400">
-                              Запомнить меня
-                            </Checkbox>
-                            <Button
-                              type="link"
-                              onClick={() => setForgotModal(true)}
-                              className="!text-blue-400 hover:!text-blue-300"
-                            >
-                              Забыли пароль?
-                            </Button>
-                          </div>
-
                           <Button
                             type="primary"
                             htmlType="submit"
@@ -468,33 +468,6 @@ const Login = () => {
                           >
                             Войти
                           </Button>
-
-                          <Divider className="!border-white/10 !my-6">
-                            <span className="text-gray-500 text-sm">
-                              или войти через
-                            </span>
-                          </Divider>
-
-                          <div className="flex gap-3">
-                            <Button
-                              icon={<GoogleOutlined />}
-                              className="!bg-white/5 !border-white/10 !text-gray-300 flex-1 !rounded-xl hover:!text-white"
-                            >
-                              Google
-                            </Button>
-                            <Button
-                              icon={<AppleOutlined />}
-                              className="!bg-white/5 !border-white/10 !text-gray-300 flex-1 !rounded-xl hover:!text-white"
-                            >
-                              Apple
-                            </Button>
-                            <Button
-                              icon={<FacebookOutlined />}
-                              className="!bg-white/5 !border-white/10 !text-gray-300 flex-1 !rounded-xl hover:!text-white"
-                            >
-                              Facebook
-                            </Button>
-                          </div>
                         </Form>
                       </motion.div>
                     )}
@@ -538,21 +511,6 @@ const Login = () => {
                                 <MailOutlined className="text-gray-400" />
                               }
                               placeholder="Email"
-                              className="!bg-white/5 !border-white/10 !text-white !rounded-xl"
-                            />
-                          </Form.Item>
-
-                          <Form.Item
-                            name="phone"
-                            rules={[
-                              { required: true, message: "Введите телефон" },
-                            ]}
-                          >
-                            <Input
-                              prefix={
-                                <PhoneOutlined className="text-gray-400" />
-                              }
-                              placeholder="Телефон"
                               className="!bg-white/5 !border-white/10 !text-white !rounded-xl"
                             />
                           </Form.Item>
@@ -648,39 +606,10 @@ const Login = () => {
                           >
                             Зарегистрироваться
                           </Button>
-
-                          <Divider className="!border-white/10 !my-6">
-                            <span className="text-gray-500 text-sm">
-                              или зарегистрироваться через
-                            </span>
-                          </Divider>
-
-                          <div className="flex gap-3">
-                            <Button
-                              icon={<GoogleOutlined />}
-                              className="!bg-white/5 !border-white/10 !text-gray-300 flex-1 !rounded-xl"
-                            >
-                              Google
-                            </Button>
-                            <Button
-                              icon={<AppleOutlined />}
-                              className="!bg-white/5 !border-white/10 !text-gray-300 flex-1 !rounded-xl"
-                            >
-                              Apple
-                            </Button>
-                          </div>
                         </Form>
                       </motion.div>
                     )}
                   </AnimatePresence>
-
-                  {/* Demo Account Info */}
-                  <div className="mt-6 p-3 bg-white/5 rounded-xl border border-white/10">
-                    <div className="flex items-center gap-2 text-xs text-gray-400">
-                      <CheckCircleOutlined className="text-green-400" />
-                      <span>Демо-аккаунт: demo@drivelog.com / demo123</span>
-                    </div>
-                  </div>
                 </div>
               </Card>
             </motion.div>

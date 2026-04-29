@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   CarOutlined,
   DashboardOutlined,
@@ -9,10 +9,12 @@ import {
   CloseOutlined,
   BarChartOutlined,
   FileTextOutlined,
+  NotificationOutlined,
 } from "@ant-design/icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button, Tooltip, Avatar } from "antd";
 import { Link, useHref, useNavigate } from "react-router";
+import { enums } from "../enums";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -20,6 +22,14 @@ const Header = () => {
   const [activeNav, setActiveNav] = useState(href);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem(enums.TOKEN);
+
+    if (!token) {
+      navigate("/auth");
+    }
+  }, []);
 
   const navItems = [
     {
@@ -42,7 +52,19 @@ const Header = () => {
       icon: <SettingOutlined />,
       href: "/settings",
     },
+
+    {
+      key: "notifications",
+      label: "Уведомления",
+      icon: <NotificationOutlined />,
+      href: "/notifications",
+    },
   ];
+
+  const logout = () => {
+    localStorage.removeItem(enums.TOKEN);
+    navigate("/auth", { replace: true });
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/10">
@@ -85,22 +107,22 @@ const Header = () => {
 
           {/* User Menu */}
           <div className="flex items-center gap-3">
-            <Tooltip title="Профиль">
-              <Link
-                className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
-                to="/profile"
-              >
-                <Avatar
-                  icon={<UserOutlined />}
-                  style={{ backgroundColor: "#2c2c3a" }}
-                />
-                <span className="hidden sm:inline text-sm text-gray-300">
-                  Алексей
-                </span>
-              </Link>
-            </Tooltip>
+            <div
+              className="flex items-center gap-2 cursor-pointer"
+              style={{ cursor: "default" }}
+            >
+              <Avatar
+                icon={<UserOutlined />}
+                style={{ backgroundColor: "#2c2c3a" }}
+              />
+              <span className="hidden sm:inline text-sm text-gray-300">
+                Алексей
+              </span>
+            </div>
+
             <Tooltip title="Выйти">
               <Button
+                onClick={logout}
                 type="text"
                 icon={<LogoutOutlined />}
                 className="text-gray-400 hover:text-white"

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   Button,
@@ -26,220 +26,97 @@ import {
   LineChartOutlined,
   CalendarOutlined,
   DeleteOutlined,
-  UserOutlined,
-  LogoutOutlined,
-  MenuOutlined,
-  CloseOutlined,
-  HomeOutlined,
-  BarChartOutlined,
-  FileTextOutlined,
 } from "@ant-design/icons";
 import { motion, AnimatePresence } from "framer-motion";
 import dayjs from "dayjs";
 import Header from "../components/Header";
+import { getCars } from "../api/entities/cars";
 
-// Mock data
-const initialCars = [
-  {
-    id: "1",
-    name: "Tesla Model 3",
-    plate: "A123BC",
-    currentMileage: 12450,
-    avgConsumption: 16.2,
-    lastService: "2025-01-15",
-    nextService: "2025-07-15",
-    color: "#3b82f6",
-    fuelRecords: [
-      {
-        id: "f1",
-        date: "2025-03-01",
-        mileage: 11800,
-        liters: 45.2,
-        cost: 2350,
-        fullTank: true,
-      },
-      {
-        id: "f2",
-        date: "2025-03-10",
-        mileage: 12150,
-        liters: 42.8,
-        cost: 2225,
-        fullTank: true,
-      },
-      {
-        id: "f3",
-        date: "2025-03-20",
-        mileage: 12450,
-        liters: 44.5,
-        cost: 2314,
-        fullTank: true,
-      },
-    ],
-  },
-  {
-    id: "2",
-    name: "BMW X5",
-    plate: "B456DE",
-    currentMileage: 87320,
-    avgConsumption: 11.8,
-    lastService: "2024-12-10",
-    nextService: "2025-06-10",
-    color: "#10b981",
-    fuelRecords: [
-      {
-        id: "f4",
-        date: "2025-02-28",
-        mileage: 86500,
-        liters: 68.3,
-        cost: 4100,
-        fullTank: true,
-      },
-      {
-        id: "f5",
-        date: "2025-03-12",
-        mileage: 87100,
-        liters: 65.1,
-        cost: 3906,
-        fullTank: true,
-      },
-      {
-        id: "f6",
-        date: "2025-03-25",
-        mileage: 87320,
-        liters: 22.5,
-        cost: 1350,
-        fullTank: false,
-      },
-    ],
-  },
-  {
-    id: "3",
-    name: "Mercedes E-Class",
-    plate: "C789FG",
-    currentMileage: 45200,
-    avgConsumption: 9.5,
-    lastService: "2025-02-20",
-    nextService: "2025-08-20",
-    color: "#f59e0b",
-    fuelRecords: [],
-  },
-];
+import AddFuelRecordModal from "../UI/widgets/AddFuelRecordModal";
+import { removeFuelExpence } from "../api/entities/fuelExpence";
+import AddCarModal from "../UI/widgets/AddCarModal";
 
 const Main = () => {
-  const [cars, setCars] = useState(initialCars);
+  const [cars, setCars] = useState([]);
   const [selectedCarId, setSelectedCarId] = useState(cars[0]?.id || "");
   const [addRecordModal, setAddRecordModal] = useState(false);
   const [addCarModal, setAddCarModal] = useState(false);
 
-  const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
+
   const [carForm] = Form.useForm();
 
   const selectedCar = cars.find((c) => c.id === selectedCarId) || cars[0];
-  const fuelRecords = selectedCar?.fuelRecords || [];
+  const fuelExpencess = selectedCar?.fuelExpencess || [];
 
   // Stats calculations
-  const lastRecord = fuelRecords[fuelRecords.length - 1];
-  const prevRecord = fuelRecords[fuelRecords.length - 2];
-  const lastMileage = lastRecord?.mileage || selectedCar?.currentMileage || 0;
-  const mileageDiff = prevRecord ? lastMileage - prevRecord.mileage : 0;
+  const lastRecord = fuelExpencess[fuelExpencess.length - 1];
+  const prevRecord = fuelExpencess[fuelExpencess.length - 2];
+  const lastMileage = lastRecord?.mileage || selectedCar?.millage || 0;
+  const mileageDiff = prevRecord ? lastMileage - prevRecord.currentMillage : 0;
   const lastConsumption =
     lastRecord?.liters && prevRecord?.mileage
       ? (
           (lastRecord.liters / (lastRecord.mileage - prevRecord.mileage)) *
           100
         ).toFixed(1)
-      : selectedCar?.avgConsumption.toFixed(1) || "0";
+      : selectedCar?.consumption.toFixed(1) || "0";
 
-  const totalFuelCost = fuelRecords.reduce((sum, r) => sum + r.cost, 0);
-  const totalLiters = fuelRecords.reduce((sum, r) => sum + r.liters, 0);
+  const totalFuelCost = fuelExpencess.reduce((sum, r) => sum + r.cost, 0);
+
+  const totalLiters = fuelExpencess.reduce((sum, r) => sum + r.liters, 0);
   const avgConsumptionOverall =
-    fuelRecords.length && prevRecord
+    fuelExpencess.length && prevRecord
       ? (
-          (totalLiters / (lastMileage - (fuelRecords[0]?.mileage || 0))) *
+          (totalLiters / (lastMileage - (fuelExpencess[0]?.mileage || 0))) *
           100
         ).toFixed(1)
-      : selectedCar?.avgConsumption.toFixed(1) || "0";
+      : selectedCar?.consumption.toFixed(1) || "0";
 
   // Service days left
-  const nextServiceDate = dayjs(selectedCar?.nextService);
+  const nextServiceDate = dayjs(selectedCar?.nextMaintance);
   const daysToService = nextServiceDate.diff(dayjs(), "day");
   const serviceStatus =
     daysToService <= 0 ? "overdue" : daysToService <= 14 ? "warning" : "good";
 
-  // Handlers
-  const handleAddRecord = (values) => {
-    const newRecord = {
-      id: Date.now().toString(),
-      date: values.date.format("YYYY-MM-DD"),
-      mileage: values.mileage,
-      liters: values.liters,
-      cost: values.cost,
-      fullTank: values.fullTank || true,
-    };
+  const fetchCars = () => {
+    setLoading(true);
 
-    const updatedCars = cars.map((car) => {
-      if (car.id === selectedCarId) {
-        const updatedRecords = [...car.fuelRecords, newRecord].sort(
-          (a, b) => dayjs(a.date).unix() - dayjs(b.date).unix()
-        );
-        const newMileage = newRecord.mileage;
-        const newAvg =
-          updatedRecords.length > 1
-            ? updatedRecords.reduce((sum, r, idx) => {
-                if (idx === 0) return 0;
-                const prev = updatedRecords[idx - 1];
-                const consumption =
-                  (r.liters / (r.mileage - prev.mileage)) * 100;
-                return sum + consumption;
-              }, 0) /
-              (updatedRecords.length - 1)
-            : car.avgConsumption;
+    getCars()
+      .then((res) => {
+        console.log(res);
 
-        return {
-          ...car,
-          currentMileage: newMileage,
-          avgConsumption: parseFloat(newAvg.toFixed(1)),
-          fuelRecords: updatedRecords,
-        };
-      }
-      return car;
-    });
-
-    setCars(updatedCars);
-    setAddRecordModal(false);
-    form.resetFields();
-    message.success("Заправка добавлена");
+        setCars(res);
+      })
+      .catch((e) => {
+        message.error("Ошибка получения автомобилей");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
-  const handleAddCar = (values) => {
-    const newCar = {
-      id: Date.now().toString(),
-      name: values.name,
-      plate: values.plate,
-      currentMileage: values.currentMileage,
-      avgConsumption: values.avgConsumption,
-      lastService: values.lastService.format("YYYY-MM-DD"),
-      nextService: values.nextService.format("YYYY-MM-DD"),
-      color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
-      fuelRecords: [],
-    };
-    setCars([...cars, newCar]);
-    setSelectedCarId(newCar.id);
-    setAddCarModal(false);
-    carForm.resetFields();
-    message.success("Автомобиль добавлен");
-  };
+  useEffect(() => {
+    fetchCars();
+  }, []);
 
   const handleDeleteRecord = (recordId) => {
+    console.log("recordId", recordId);
+
     const updatedCars = cars.map((car) => {
-      if (car.id === selectedCarId) {
-        const filtered = car.fuelRecords.filter((r) => r.id !== recordId);
-        return { ...car, fuelRecords: filtered };
-      }
-      return car;
+      const filtered = car.fuelExpencess.filter((r) => r.id !== recordId);
+      return { ...car, fuelExpencess: filtered };
     });
+
     setCars(updatedCars);
-    message.success("Запись удалена");
+
+    removeFuelExpence({ id: recordId })
+      .then((res) => {
+        message.success("Запись удалена");
+      })
+      .catch((e) => {
+        message.error("Не удалось удалить запись");
+      });
   };
 
   const tableColumns = [
@@ -251,9 +128,9 @@ const Main = () => {
     },
     {
       title: "Пробег, км",
-      dataIndex: "mileage",
-      key: "mileage",
-      render: (val) => val.toLocaleString(),
+      dataIndex: "currentMillage",
+      key: "currentMillage",
+      render: (val) => val,
     },
     {
       title: "Литры",
@@ -265,7 +142,7 @@ const Main = () => {
       title: "Стоимость, ₽",
       dataIndex: "cost",
       key: "cost",
-      render: (val) => `${val.toLocaleString()} ₽`,
+      render: (val) => `${val} ₽`,
     },
     {
       title: "Полный бак",
@@ -276,26 +153,21 @@ const Main = () => {
     {
       title: "Действия",
       key: "action",
-      render: (_, record) => (
-        <Button
-          type="text"
-          danger
-          icon={<DeleteOutlined />}
-          onClick={() => handleDeleteRecord(record.id)}
-        />
-      ),
+      render: (_, record) => {
+        console.log("record =>>", record);
+
+        return (
+          <Button
+            type="text"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => handleDeleteRecord(record.id)}
+          />
+        );
+      },
     },
   ];
 
-  const navItems = [
-    { key: "dashboard", label: "Дашборд", icon: <DashboardOutlined /> },
-    { key: "trips", label: "Поездки", icon: <CarOutlined /> },
-    { key: "statistics", label: "Статистика", icon: <BarChartOutlined /> },
-    { key: "reports", label: "Отчеты", icon: <FileTextOutlined /> },
-    { key: "settings", label: "Настройки", icon: <SettingOutlined /> },
-  ];
-
-  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -370,6 +242,7 @@ const Main = () => {
               <Card
                 className="!bg-white/5 !border-white/10 !backdrop-blur-sm !rounded-2xl"
                 bodyStyle={{ padding: "16px 24px" }}
+                loading={loading}
               >
                 <div className="flex gap-4 flex-wrap items-center justify-between">
                   <div className="flex gap-3 flex-wrap">
@@ -410,7 +283,11 @@ const Main = () => {
                         color="blue"
                         className="!bg-white/5 !border-white/10 !text-gray-300 !rounded-full !px-3 !py-1"
                       >
-                        {selectedCar?.avgConsumption} л/100км
+                        {selectedCar?.fuelExpencess?.reduce(
+                          (sum, c) => sum + c.liters,
+                          0
+                        ) / selectedCar?.fuelExpencess?.length || 0}
+                        л/100км
                       </Tag>
                     </Tooltip>
                   </div>
@@ -423,14 +300,17 @@ const Main = () => {
               variants={itemVariants}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8"
             >
-              <Card className="!bg-white/5 !border-white/10 !rounded-2xl !backdrop-blur-sm">
+              <Card
+                loading={loading}
+                className="!bg-white/5 !border-white/10 !rounded-2xl !backdrop-blur-sm"
+              >
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-gray-400 text-xs uppercase tracking-wide mb-2">
                       Текущий пробег
                     </p>
                     <p className="text-white text-3xl font-semibold">
-                      {selectedCar?.currentMileage?.toLocaleString()}
+                      {selectedCar?.millage?.toLocaleString()}
                     </p>
                     <p className="text-gray-500 text-xs mt-2">км</p>
                   </div>
@@ -445,14 +325,20 @@ const Main = () => {
                 )}
               </Card>
 
-              <Card className="!bg-white/5 !border-white/10 !rounded-2xl !backdrop-blur-sm">
+              <Card
+                loading={loading}
+                className="!bg-white/5 !border-white/10 !rounded-2xl !backdrop-blur-sm"
+              >
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-gray-400 text-xs uppercase tracking-wide mb-2">
                       Средний расход
                     </p>
                     <p className="text-white text-3xl font-semibold">
-                      {lastConsumption}
+                      {(selectedCar?.fuelExpencess?.reduce(
+                        (sum, c) => sum + c.liters,
+                        0
+                      ) / selectedCar?.fuelExpencess?.length) || 0}
                     </p>
                     <p className="text-gray-500 text-xs mt-2">л/100км</p>
                   </div>
@@ -461,7 +347,7 @@ const Main = () => {
                 <Progress
                   percent={
                     (parseFloat(lastConsumption) /
-                      (selectedCar?.avgConsumption || 10)) *
+                      (selectedCar?.consumption || 10)) *
                     30
                   }
                   showInfo={false}
@@ -471,14 +357,17 @@ const Main = () => {
                 />
               </Card>
 
-              <Card className="!bg-white/5 !border-white/10 !rounded-2xl !backdrop-blur-sm">
+              <Card
+                loading={loading}
+                className="!bg-white/5 !border-white/10 !rounded-2xl !backdrop-blur-sm"
+              >
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-gray-400 text-xs uppercase tracking-wide mb-2">
                       Затраты на топливо
                     </p>
                     <p className="text-white text-3xl font-semibold">
-                      {totalFuelCost.toLocaleString()}
+                      {totalFuelCost}
                     </p>
                     <p className="text-gray-500 text-xs mt-2">₽ всего</p>
                   </div>
@@ -491,7 +380,10 @@ const Main = () => {
                 </div>
               </Card>
 
-              <Card className="!bg-white/5 !border-white/10 !rounded-2xl !backdrop-blur-sm">
+              <Card
+                loading={loading}
+                className="!bg-white/5 !border-white/10 !rounded-2xl !backdrop-blur-sm"
+              >
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-gray-400 text-xs uppercase tracking-wide mb-2">
@@ -509,7 +401,7 @@ const Main = () => {
                       {Math.abs(daysToService)} дн.
                     </p>
                     <p className="text-gray-500 text-xs mt-2">
-                      {dayjs(selectedCar?.nextService).format("DD.MM.YYYY")}
+                      {dayjs(selectedCar?.nextMaintance).format("DD.MM.YYYY")}
                     </p>
                   </div>
                   <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center">
@@ -532,7 +424,7 @@ const Main = () => {
                       История заправок
                     </span>
                     <Badge
-                      count={fuelRecords.length}
+                      count={fuelExpencess.length}
                       style={{
                         backgroundColor: "rgba(255,255,255,0.1)",
                         color: "#9ca3af",
@@ -548,7 +440,7 @@ const Main = () => {
                 bodyStyle={{ padding: 0 }}
               >
                 <AnimatePresence mode="wait">
-                  {fuelRecords.length === 0 ? (
+                  {fuelExpencess.length === 0 ? (
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -558,8 +450,9 @@ const Main = () => {
                     </motion.div>
                   ) : (
                     <Table
+                      loading={loading}
                       columns={tableColumns}
-                      dataSource={[...fuelRecords].sort(
+                      dataSource={[...fuelExpencess].sort(
                         (a, b) => dayjs(b.date).unix() - dayjs(a.date).unix()
                       )}
                       rowKey="id"
@@ -597,214 +490,18 @@ const Main = () => {
         </div>
       </div>
 
-      {/* Add Record Modal */}
-      <Modal
-        title={<span></span>}
+      <AddFuelRecordModal
         open={addRecordModal}
-        onCancel={() => setAddRecordModal(false)}
-        footer={null}
-        modalRender={(node) => (
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring" }}
-          >
-            {node}
-          </motion.div>
-        )}
-        className="[&_.ant-modal-content]:!bg-[#0a0a0f] [&_.ant-modal-content]:!border [&_.ant-modal-content]:!border-white/10 [&_.ant-modal-header]:!bg-transparent [&_.ant-modal-header]:!border-b-white/10 [&_.ant-modal-title]:!text-white"
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleAddRecord}
-          initialValues={{ fullTank: true }}
-        >
-          <Form.Item
-            name="date"
-            label="Дата"
-            rules={[{ required: true }]}
-            className="[&_.ant-form-item-label_label]:!text-gray-300"
-          >
-            <DatePicker
-              className="!bg-white/5 !border-white/10 !text-white w-full"
-              format="DD.MM.YYYY"
-            />
-          </Form.Item>
-          <Form.Item
-            name="mileage"
-            label="Пробег (км)"
-            rules={[
-              {
-                required: true,
-                type: "number",
-                min: selectedCar?.currentMileage || 0,
-              },
-            ]}
-            className="[&_.ant-form-item-label_label]:!text-gray-300"
-          >
-            <Input
-              type="number"
-              placeholder="текущий пробег"
-              suffix="км"
-              className="!bg-white/5 !border-white/10 !text-white"
-            />
-          </Form.Item>
-          <Form.Item
-            name="liters"
-            label="Литры"
-            rules={[{ required: true, type: "number", min: 0.1 }]}
-            className="[&_.ant-form-item-label_label]:!text-gray-300"
-          >
-            <Input
-              type="number"
-              step="0.1"
-              placeholder="объем топлива"
-              suffix="л"
-              className="!bg-white/5 !border-white/10 !text-white"
-            />
-          </Form.Item>
-          <Form.Item
-            name="cost"
-            label="Стоимость (₽)"
-            rules={[{ required: true, type: "number", min: 1 }]}
-            className="[&_.ant-form-item-label_label]:!text-gray-300"
-          >
-            <Input
-              type="number"
-              placeholder="сумма"
-              suffix="₽"
-              className="!bg-white/5 !border-white/10 !text-white"
-            />
-          </Form.Item>
-          <Form.Item
-            name="fullTank"
-            label="Полный бак"
-            className="[&_.ant-form-item-label_label]:!text-gray-300"
-          >
-            <Select
-              options={[
-                { value: true, label: "Да" },
-                { value: false, label: "Нет" },
-              ]}
-              className="!bg-white/5"
-            />
-          </Form.Item>
-          <Form.Item>
-            <Button
-              type="primary"
-              htmlType="submit"
-              block
-              className="!bg-white/10 !border-white/20 !text-white hover:!bg-white/20 !rounded-full !h-11"
-            >
-              Сохранить запись
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
+        onClose={() => setAddRecordModal(false)}
+        selectedCar={selectedCar}
+        fetchCars={fetchCars}
+      />
 
-      {/* Add Car Modal */}
-      <Modal
-        title={
-          <span>
-            <CarOutlined className="mr-2" /> Добавить автомобиль
-          </span>
-        }
+      <AddCarModal
         open={addCarModal}
-        onCancel={() => setAddCarModal(false)}
-        footer={null}
-        modalRender={(node) => (
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-          >
-            {node}
-          </motion.div>
-        )}
-        className="[&_.ant-modal-content]:!bg-[#0a0a0f] [&_.ant-modal-content]:!border [&_.ant-modal-content]:!border-white/10 [&_.ant-modal-header]:!bg-transparent [&_.ant-modal-header]:!border-b-white/10 [&_.ant-modal-title]:!text-white"
-      >
-        <Form form={carForm} layout="vertical" onFinish={handleAddCar}>
-          <Form.Item
-            name="name"
-            label="Модель"
-            rules={[{ required: true }]}
-            className="[&_.ant-form-item-label_label]:!text-gray-300"
-          >
-            <Input
-              placeholder="Tesla Model 3"
-              className="!bg-white/5 !border-white/10 !text-white"
-            />
-          </Form.Item>
-          <Form.Item
-            name="plate"
-            label="Госномер"
-            rules={[{ required: true }]}
-            className="[&_.ant-form-item-label_label]:!text-gray-300"
-          >
-            <Input
-              placeholder="A123BC"
-              className="!bg-white/5 !border-white/10 !text-white"
-            />
-          </Form.Item>
-          <Form.Item
-            name="currentMileage"
-            label="Начальный пробег (км)"
-            rules={[{ required: true, type: "number" }]}
-            className="[&_.ant-form-item-label_label]:!text-gray-300"
-          >
-            <Input
-              type="number"
-              placeholder="0"
-              className="!bg-white/5 !border-white/10 !text-white"
-            />
-          </Form.Item>
-          <Form.Item
-            name="avgConsumption"
-            label="Средний расход (л/100км)"
-            rules={[{ required: true, type: "number" }]}
-            className="[&_.ant-form-item-label_label]:!text-gray-300"
-          >
-            <Input
-              type="number"
-              step="0.1"
-              placeholder="10.5"
-              className="!bg-white/5 !border-white/10 !text-white"
-            />
-          </Form.Item>
-          <Form.Item
-            name="lastService"
-            label="Дата последнего ТО"
-            rules={[{ required: true }]}
-            className="[&_.ant-form-item-label_label]:!text-gray-300"
-          >
-            <DatePicker
-              format="DD.MM.YYYY"
-              className="!bg-white/5 !border-white/10 !text-white w-full"
-            />
-          </Form.Item>
-          <Form.Item
-            name="nextService"
-            label="Дата следующего ТО"
-            rules={[{ required: true }]}
-            className="[&_.ant-form-item-label_label]:!text-gray-300"
-          >
-            <DatePicker
-              format="DD.MM.YYYY"
-              className="!bg-white/5 !border-white/10 !text-white w-full"
-            />
-          </Form.Item>
-          <Form.Item>
-            <Button
-              type="primary"
-              htmlType="submit"
-              block
-              className="!bg-white/10 !border-white/20 !text-white hover:!bg-white/20 !rounded-full !h-11"
-            >
-              Добавить авто
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
+        onClose={() => setAddCarModal(false)}
+        fetchCars={fetchCars}
+      />
 
       {/* Add custom gradient background */}
       <style jsx>{`
