@@ -12,14 +12,28 @@ import {
   NotificationOutlined,
 } from "@ant-design/icons";
 import { motion, AnimatePresence } from "framer-motion";
-import { Button, Tooltip, Avatar } from "antd";
+import { Button, Tooltip, Avatar, Card, Space } from "antd";
 import { Link, useHref, useNavigate } from "react-router";
 import { enums } from "../enums";
+import { currentUser } from "../api/entities/user";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const href = useHref();
   const [activeNav, setActiveNav] = useState(href);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+
+    currentUser()
+      .then((res) => setUser(res))
+      .catch((e) => console.log(e))
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
 
   const navigate = useNavigate();
 
@@ -116,7 +130,7 @@ const Header = () => {
                 style={{ backgroundColor: "#2c2c3a" }}
               />
               <span className="hidden sm:inline text-sm text-gray-300">
-                Алексей
+                {user?.name}
               </span>
             </div>
 

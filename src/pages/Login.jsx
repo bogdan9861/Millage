@@ -89,7 +89,7 @@ const Login = () => {
         navigate("/");
       })
       .catch((e) => {
-        console.log(e.message);
+        message.error(e?.message)
       })
       .finally(() => {
         setLoading(false);
