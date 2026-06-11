@@ -1,7 +1,16 @@
 import React, { useState } from "react";
-import { Button, Input, Modal, Form, DatePicker, Select, message } from "antd";
+import {
+  Button,
+  Input,
+  Modal,
+  Form,
+  DatePicker,
+  Select,
+  message,
+  Upload,
+} from "antd";
 import { motion } from "framer-motion";
-import { CarOutlined } from "@ant-design/icons";
+import { CarOutlined, UploadOutlined } from "@ant-design/icons";
 import { createCar } from "../../api/entities/cars";
 
 const AddCarModal = ({ open, onClose, fetchCars }) => {
@@ -11,7 +20,30 @@ const AddCarModal = ({ open, onClose, fetchCars }) => {
   const handleAddCar = (values) => {
     setLoading(true);
 
-    createCar(values)
+    const formData = new FormData();
+
+    Object.keys(values).forEach((key) => {
+      if (
+        key === "image" ||
+        key === "lastMaintanceDate" ||
+        key === "nextMaintance"
+      )
+        return;
+
+      formData.append(key, values[key]);
+    });
+
+    formData.append("image", values?.image?.file?.originFileObj);
+    formData.append(
+      "lastMaintanceDate",
+      new Date(values?.lastMaintanceDate).toISOString(),
+    );
+    formData.append(
+      "nextMaintance",
+      new Date(values?.nextMaintance).toISOString(),
+    );
+
+    createCar(formData)
       .then((res) => {
         fetchCars();
         onClose();
@@ -45,6 +77,14 @@ const AddCarModal = ({ open, onClose, fetchCars }) => {
       className="[&_.ant-modal-content]:!bg-[#0a0a0f] [&_.ant-modal-content]:!border [&_.ant-modal-content]:!border-white/10 [&_.ant-modal-header]:!bg-transparent [&_.ant-modal-header]:!border-b-white/10 [&_.ant-modal-title]:!text-white"
     >
       <Form form={carForm} layout="vertical" onFinish={handleAddCar}>
+        <Form.Item name="image">
+          <Upload>
+            <Button>
+              Загрузить фото автомобиля
+              <UploadOutlined />
+            </Button>
+          </Upload>
+        </Form.Item>
         <Form.Item
           name="name"
           label="Модель"

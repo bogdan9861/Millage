@@ -1,7 +1,9 @@
 import api from "..";
 
 export const createFuelExpence = async (data) => {
-  return await api.post("/fuel/", data);
+  return await api.post("/fuel/", data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
 };
 
 export const editFuelExpence = async ({ id, data }) => {

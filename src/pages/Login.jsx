@@ -89,7 +89,7 @@ const Login = () => {
         navigate("/");
       })
       .catch((e) => {
-        message.error(e?.message)
+        message.error(e?.message);
       })
       .finally(() => {
         setLoading(false);
@@ -101,14 +101,17 @@ const Login = () => {
       message.error("Пароли не совпадают");
       return;
     }
+
     setLoading(true);
 
     registerUser(values)
       .then((res) => {
-        localStorage(enums.TOKEN, res.data.token);
+        localStorage.setItem(enums.TOKEN, res.token);
         navigate("/");
       })
       .catch((e) => {
+        console.log(e);
+
         message.error(e?.response?.data?.message || "Не удалось войти");
       })
       .finally(() => {
@@ -118,7 +121,7 @@ const Login = () => {
 
   const handleForgotPassword = (values) => {
     message.success(
-      `Инструкции по восстановлению отправлены на ${values.email}`
+      `Инструкции по восстановлению отправлены на ${values.email}`,
     );
     setForgotModal(false);
   };
@@ -328,7 +331,7 @@ const Login = () => {
                     <CarOutlined className="text-white text-2xl" />
                   </div>
                   <span className="text-2xl font-bold text-white">
-                    DriveLog
+                    Учет поездок
                   </span>
                 </div>
                 <h1 className="text-5xl font-bold text-white mb-4 leading-tight">
@@ -552,7 +555,7 @@ const Login = () => {
                                     return Promise.resolve();
                                   }
                                   return Promise.reject(
-                                    new Error("Пароли не совпадают")
+                                    new Error("Пароли не совпадают"),
                                   );
                                 },
                               }),

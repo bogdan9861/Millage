@@ -101,21 +101,22 @@ const Trips = () => {
   const totalTrips = filteredTrips.length;
   const totalDistance = filteredTrips.reduce(
     (sum, trip) => sum + (trip?.endMillage - trip.startMillage),
-    0
+    0,
   );
   const totalFuelCost = filteredTrips.reduce(
     (sum, trip) => sum + trip.fuelCost,
-    0
+    0,
   );
   const totalDuration = filteredTrips.reduce(
     (sum, trip) => sum + trip.duration,
-    0
+    0,
   );
+
   const avgConsumption = (
     filteredTrips.reduce(
       (sum, trip) =>
         sum + (trip.fuelWaste / (trip?.endMillage - trip.startMillage)) * 100,
-      0
+      0,
     ) / totalTrips
   ).toFixed(1);
   const avgRating = (
@@ -324,6 +325,8 @@ const Trips = () => {
     },
   };
 
+  console.log(avgConsumption);
+
   return (
     <div className="min-h-screen bg-black">
       <Header />
@@ -451,7 +454,7 @@ const Trips = () => {
                       Средний расход
                     </span>
                   }
-                  value={avgConsumption}
+                  value={avgConsumption || 0}
                   precision={1}
                   valueStyle={{
                     color: "#fff",

@@ -1,8 +1,18 @@
-import { Button, Input, Modal, Form, DatePicker, Select, message } from "antd";
+import {
+  Button,
+  Input,
+  Modal,
+  Form,
+  DatePicker,
+  Select,
+  message,
+  Upload,
+} from "antd";
 import { motion } from "framer-motion";
 
 import React, { useEffect, useState } from "react";
 import { createFuelExpence } from "../../api/entities/fuelExpence";
+import { UploadOutlined } from "@ant-design/icons";
 
 const AddFuelRecordModal = ({ open, onClose, selectedCar, fetchCars }) => {
   const [form] = Form.useForm();
@@ -10,17 +20,25 @@ const AddFuelRecordModal = ({ open, onClose, selectedCar, fetchCars }) => {
 
   useEffect(() => {
     if (!selectedCar) return;
-    
-    form.setFieldValue("currentMillage", selectedCar.millage)
-  
+
+    form.setFieldValue("currentMillage", selectedCar.millage);
   }, [selectedCar]);
 
   const handleAddRecord = (values) => {
     setLoading(true);
 
-    console.log("fuel values", values);
+    const formData = new FormData();
 
-    createFuelExpence({ ...values, carId: selectedCar?.id })
+    Object.keys(values).forEach((key) => {
+      if (key === "file") return;
+
+      formData.append(key, values[key]);
+    });
+
+    formData.append("file", values?.file?.file?.originFileObj);
+    formData.append("carId", selectedCar?.id);
+
+    createFuelExpence(formData)
       .then((res) => {
         console.log("res", res);
 
@@ -37,7 +55,7 @@ const AddFuelRecordModal = ({ open, onClose, selectedCar, fetchCars }) => {
 
   return (
     <Modal
-      title={<span></span>}
+      title="Добавить заправку"
       open={open}
       onCancel={onClose}
       footer={null}
@@ -125,6 +143,14 @@ const AddFuelRecordModal = ({ open, onClose, selectedCar, fetchCars }) => {
             ]}
             className="!bg-white/5"
           />
+        </Form.Item>
+        <Form.Item name="file">
+          <Upload>
+            <Button>
+              Загрузить чек
+              <UploadOutlined />
+            </Button>
+          </Upload>
         </Form.Item>
         <Form.Item>
           <Button

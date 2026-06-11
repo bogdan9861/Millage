@@ -26,11 +26,13 @@ import {
   LineChartOutlined,
   CalendarOutlined,
   DeleteOutlined,
+  CompressOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
 import { motion, AnimatePresence } from "framer-motion";
 import dayjs from "dayjs";
 import Header from "../components/Header";
-import { getCars } from "../api/entities/cars";
+import { getCars, removeCar } from "../api/entities/cars";
 
 import AddFuelRecordModal from "../UI/widgets/AddFuelRecordModal";
 import { removeFuelExpence } from "../api/entities/fuelExpence";
@@ -47,6 +49,9 @@ const Main = () => {
   const [carForm] = Form.useForm();
 
   const selectedCar = cars.find((c) => c.id === selectedCarId) || cars[0];
+
+  console.log("selectedCar ===>", selectedCar);
+
   const fuelExpencess = selectedCar?.fuelExpencess || [];
 
   // Stats calculations
@@ -90,6 +95,7 @@ const Main = () => {
       })
       .catch((e) => {
         message.error("Ошибка получения автомобилей");
+        message.error("Ошибка получения автомобилей");
       })
       .finally(() => {
         setLoading(false);
@@ -116,6 +122,18 @@ const Main = () => {
       })
       .catch((e) => {
         message.error("Не удалось удалить запись");
+      });
+  };
+
+  const handleRemove = () => {
+    setCars([...cars.filter((c) => c.id !== selectedCarId)]);
+
+    removeCar({ id: selectedCarId })
+      .then((res) => {
+        message.success("Автомобиль удалён");
+      })
+      .catch((e) => {
+        console.log(e);
       });
   };
 
@@ -157,12 +175,22 @@ const Main = () => {
         console.log("record =>>", record);
 
         return (
-          <Button
-            type="text"
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() => handleDeleteRecord(record.id)}
-          />
+          <>
+            <Button
+              type="text"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => handleDeleteRecord(record.id)}
+            />
+
+            <Button
+              type="text"
+              icon={<EyeOutlined />}
+              onClick={() => {
+                window.open(record?.fileUrl, "_blank");
+              }}
+            />
+          </>
         );
       },
     },
@@ -215,10 +243,10 @@ const Main = () => {
                   Учет пробега
                 </motion.h1>
                 <p className="text-gray-500 text-sm">
-                  Минимализм. Анимации. Контроль.
+                  Удобный контроль автопарка
                 </p>
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-3" style={{ flexWrap: "wrap" }}>
                 <Button
                   type="primary"
                   icon={<PlusOutlined />}
@@ -233,6 +261,14 @@ const Main = () => {
                   className="!bg-black !border-white/20 !text-gray-300 hover:!text-white hover:!border-white/40 !rounded-full !h-11"
                 >
                   Новый авто
+                </Button>
+                <Button
+                  danger
+                  icon={<DeleteOutlined style={{ color: "red" }} />}
+                  onClick={handleRemove}
+                  className="!bg-white/10 !border-white/20 !text-white hover:!bg-white/20 !rounded-full !h-11 !font-medium"
+                >
+                  Удалить автомобиль
                 </Button>
               </div>
             </motion.div>
@@ -285,7 +321,7 @@ const Main = () => {
                       >
                         {selectedCar?.fuelExpencess?.reduce(
                           (sum, c) => sum + c.liters,
-                          0
+                          0,
                         ) / selectedCar?.fuelExpencess?.length || 0}
                         л/100км
                       </Tag>
@@ -300,6 +336,18 @@ const Main = () => {
               variants={itemVariants}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8"
             >
+              {selectedCar?.imageUrl && (
+                <Card
+                  loading={loading}
+                  className="!bg-white/5 !border-white/10 !rounded-2xl !backdrop-blur-sm"
+                >
+                  <img
+                    style={{ width: "100%", height: "100%" }}
+                    src={selectedCar?.imageUrl}
+                  />
+                </Card>
+              )}
+
               <Card
                 loading={loading}
                 className="!bg-white/5 !border-white/10 !rounded-2xl !backdrop-blur-sm"
@@ -335,10 +383,10 @@ const Main = () => {
                       Средний расход
                     </p>
                     <p className="text-white text-3xl font-semibold">
-                      {(selectedCar?.fuelExpencess?.reduce(
+                      {selectedCar?.fuelExpencess?.reduce(
                         (sum, c) => sum + c.liters,
-                        0
-                      ) / selectedCar?.fuelExpencess?.length) || 0}
+                        0,
+                      ) / selectedCar?.fuelExpencess?.length || 0}
                     </p>
                     <p className="text-gray-500 text-xs mt-2">л/100км</p>
                   </div>
@@ -394,8 +442,8 @@ const Main = () => {
                         serviceStatus === "overdue"
                           ? "text-red-400"
                           : serviceStatus === "warning"
-                          ? "text-yellow-400"
-                          : "text-green-400"
+                            ? "text-yellow-400"
+                            : "text-green-400"
                       }`}
                     >
                       {Math.abs(daysToService)} дн.
@@ -453,7 +501,7 @@ const Main = () => {
                       loading={loading}
                       columns={tableColumns}
                       dataSource={[...fuelExpencess].sort(
-                        (a, b) => dayjs(b.date).unix() - dayjs(a.date).unix()
+                        (a, b) => dayjs(b.date).unix() - dayjs(a.date).unix(),
                       )}
                       rowKey="id"
                       pagination={{

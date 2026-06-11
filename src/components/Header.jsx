@@ -77,12 +77,17 @@ const Header = () => {
 
   const logout = () => {
     localStorage.removeItem(enums.TOKEN);
-    navigate("/auth", { replace: true });
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/10">
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+    <nav
+      className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/10"
+      style={{ width: "100%" }}
+    >
+      <div
+        className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8"
+        style={{ width: "100%" }}
+      >
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center gap-2">
@@ -90,18 +95,18 @@ const Header = () => {
               <CarOutlined className="text-white text-sm" />
             </div>
             <span className="text-white font-semibold text-lg tracking-tight">
-              DriveLog
+              Учет поездок
             </span>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1">
             {navItems.map((item) => (
-              <button
+              <Link
+                to={item.href}
                 key={item.key}
                 onClick={() => {
                   setActiveNav(item.key);
-                  navigate(item.href);
                 }}
                 className={`
                     px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
@@ -115,7 +120,7 @@ const Header = () => {
               >
                 {item.icon}
                 {item.label}
-              </button>
+              </Link>
             ))}
           </div>
 
@@ -165,7 +170,8 @@ const Header = () => {
           >
             <div className="px-4 py-3 space-y-1">
               {navItems.map((item) => (
-                <button
+                <Link
+                  to={item.href}
                   key={item.key}
                   onClick={() => {
                     setActiveNav(item.key);
@@ -183,7 +189,7 @@ const Header = () => {
                 >
                   {item.icon}
                   {item.label}
-                </button>
+                </Link>
               ))}
               <div className="pt-3 mt-3 border-t border-white/10">
                 <div className="px-4 py-2 flex items-center gap-3 text-sm text-gray-400">

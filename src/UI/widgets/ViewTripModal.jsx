@@ -1,10 +1,11 @@
-import { Tag, Modal, Avatar, Divider } from "antd";
+import { Tag, Modal, Avatar, Divider, Button } from "antd";
 import {
   CarOutlined,
   EnvironmentOutlined,
   FlagOutlined,
   EyeOutlined,
   CalendarOutlined,
+  DownloadOutlined,
 } from "@ant-design/icons";
 import { motion, AnimatePresence } from "framer-motion";
 import dayjs from "dayjs";
@@ -159,6 +160,16 @@ const ViewTripModal = ({
               </>
             )}
           </div>
+
+          <Button
+            type="primary"
+            icon={<DownloadOutlined />}
+            onClick={() => {
+              window.open(selectedTrip?.fileUrl, "_blank");
+            }}
+          >
+            Скачать файл
+          </Button>
 
           {/* Date */}
           <div className="text-center text-xs text-gray-500">

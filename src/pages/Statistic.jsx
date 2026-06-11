@@ -34,6 +34,7 @@ import {
   ArrowUpOutlined,
   ArrowDownOutlined,
   DashboardOutlined,
+  DashOutlined,
 } from "@ant-design/icons";
 import { motion, AnimatePresence } from "framer-motion";
 import dayjs from "dayjs";
@@ -82,7 +83,9 @@ const Statistics = () => {
 
       setStatistics(res);
     } catch (e) {
-      message.error("Ошибка получения статистики");
+      console.log(e);
+
+      // message.error("Ошибка получения статистики");
     } finally {
       setLoading(false);
     }
@@ -414,7 +417,9 @@ const Statistics = () => {
                     </p>
                     <p className="text-gray-500 text-xs mt-2">л/100км</p>
                   </div>
-                  <div className="w-12 h-12 rounded-full bg-orange-500/20 flex items-center justify-center"></div>
+                  <div className="w-12 h-12 rounded-full bg-orange-500/20 flex items-center justify-center">
+                    <DashboardOutlined style={{ fontSize: 20 }} />
+                  </div>
                 </div>
                 <div className="mt-3 text-xs text-red-400">
                   -2.1% к прошлому периоду
@@ -686,8 +691,8 @@ const Statistics = () => {
                       const rating = getEfficiencyRating(
                         car?.fuelExpencess?.reduce(
                           (sum, c) => sum + c.liters,
-                          0
-                        ) / car?.fuelExpencess?.length
+                          0,
+                        ) / car?.fuelExpencess?.length,
                       );
                       return (
                         <Card
@@ -722,7 +727,7 @@ const Statistics = () => {
                                 <span className="text-white">
                                   {car?.fuelExpencess?.reduce(
                                     (sum, c) => sum + c.liters,
-                                    0
+                                    0,
                                   ) / car?.fuelExpencess?.length}{" "}
                                   л/100км
                                 </span>
@@ -743,7 +748,7 @@ const Statistics = () => {
                                   percent={
                                     (car?.fuelExpencess?.reduce(
                                       (sum, c) => sum + c.liters,
-                                      0
+                                      0,
                                     ) /
                                       car?.fuelExpencess?.length /
                                       20) *
@@ -778,13 +783,13 @@ const Statistics = () => {
                         consumption:
                           car?.fuelExpencess?.reduce(
                             (sum, c) => sum + c.liters,
-                            0
+                            0,
                           ) / car?.fuelExpencess?.length,
                         efficiency: getEfficiencyRating(
                           car?.fuelExpencess?.reduce(
                             (sum, c) => sum + c.liters,
-                            0
-                          ) / car?.fuelExpencess?.length
+                            0,
+                          ) / car?.fuelExpencess?.length,
                         ).text,
                         costPerKm: ((car.avgConsumption * 48) / 100).toFixed(2),
                       }))}

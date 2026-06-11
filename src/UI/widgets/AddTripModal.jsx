@@ -7,6 +7,7 @@ import {
   Select,
   message,
   Rate,
+  Upload,
 } from "antd";
 import { motion } from "framer-motion";
 import React, { useEffect, useState } from "react";
@@ -17,6 +18,7 @@ import {
   EnvironmentOutlined,
   FlagOutlined,
   PlusOutlined,
+  UploadOutlined,
 } from "@ant-design/icons";
 import { createTrip } from "../../api/entities/trips";
 
@@ -28,7 +30,17 @@ const AddTripModal = ({ open, onClose, setTrips, cars, carsLoading }) => {
   const handleAddTrip = (values) => {
     setLoading(true);
 
-    createTrip(values)
+    const formData = new FormData();
+
+    Object.keys(values).forEach((key) => {
+      if (key === "file") return;
+
+      formData.append(key, values[key]);
+    });
+
+    formData.append("file", values?.file?.file?.originFileObj);
+
+    createTrip(formData)
       .then((res) => {
         setTrips((prev) => [res, ...prev]);
         onClose();
@@ -81,7 +93,7 @@ const AddTripModal = ({ open, onClose, setTrips, cars, carsLoading }) => {
 
               form.setFieldValue(
                 "startMillage",
-                cars.find((c) => c.id === value).millage
+                cars.find((c) => c.id === value).millage,
               );
             }}
           >
@@ -232,6 +244,14 @@ const AddTripModal = ({ open, onClose, setTrips, cars, carsLoading }) => {
             <Rate />
           </Form.Item>
         </div>
+        <Form.Item name="file">
+          <Upload>
+            <Button>
+              Загрузить путевой лист
+              <UploadOutlined />
+            </Button>
+          </Upload>
+        </Form.Item>
         <Form.Item
           name="message"
           label="Заметки"
