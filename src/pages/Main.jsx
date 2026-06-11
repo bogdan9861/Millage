@@ -37,6 +37,7 @@ import { getCars, removeCar } from "../api/entities/cars";
 import AddFuelRecordModal from "../UI/widgets/AddFuelRecordModal";
 import { removeFuelExpence } from "../api/entities/fuelExpence";
 import AddCarModal from "../UI/widgets/AddCarModal";
+import Image from "../components/Image";
 
 const Main = () => {
   const [cars, setCars] = useState([]);
@@ -341,7 +342,7 @@ const Main = () => {
                   loading={loading}
                   className="!bg-white/5 !border-white/10 !rounded-2xl !backdrop-blur-sm"
                 >
-                  <img
+                  <Image
                     style={{ width: "100%", height: "100%" }}
                     src={selectedCar?.imageUrl}
                   />
