@@ -77,6 +77,7 @@ const Header = () => {
 
   const logout = () => {
     localStorage.removeItem(enums.TOKEN);
+    navigate("/auth");
   };
 
   return (
